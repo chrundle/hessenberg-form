@@ -53,28 +53,29 @@ void hessenberg (double ** a, double ** v, int m) {
     
         for(j = i; j < m; j++) {
             /* a[j][i+1:m] = a[j][i+1:m] - 2 * (v[i]^T a[j][i+1:m]) * v[i] */
-            vTa = subdot_product(a[j], v[i], m - i - 1, i + 1);
-            vTa *= 2;
+            vTa = 2 * subdot_product(a[j], v[i], m - i - 1, i + 1);
             partialscalar_sub(v[i], vTa, m - i - 1, i + 1, a[j]);
         }
 
         for(j = i; j < m; j++) {
-            /* a[j][i+1:m] = a[j][i+1:m] - 2 * (v[i]^T a[j][i+1:m]) * v[i] */
-            vTa = subdot_product(a[j], v[i], m - i - 1, i + 1);
-            vTa *= 2;
-            partialscalar_sub(v[i], vTa, m - i - 1, i + 1, a[j]);
+            /* a[i+1:m][j] = a[i+1:m][j] - 2 * (a[i+1:m][j] v[i]) * v[i]^T */
+            vTa = 2 * submatrow_product(a, v[i], m - i - 1, i + 1, j);
+            matrixrow_sub(v[i], vTa, m - i - 1, i + 1, j, a);
         }
     }
 }
 
 
 int main () {
-    int i, j, m;
+    int i, j, m, sym;
     double x;
 
     /* let user set the dimension of matrix A */
     printf("Enter the dimension m (where A is a m by m matrix): ");
     scanf("%i", &m);
+    printf("Enter either 0 to test a nonsymmetric matrix\n"
+           "          or 1 to test a symmetric matrix: ");
+    scanf("%i", &sym);
 
     /* allocate memory for A and vectors v */
     double ** a = new double*[m];
@@ -89,7 +90,12 @@ int main () {
     for(i = 0; i < m; i++) {
         for(j = 0; j < m; j++) {
             if(j < i) {
-                a[i][j] = 0;
+                if(sym) {
+                    a[i][j] = i - j + 1;
+                }
+                else {
+                    a[i][j] = i * j + 1;
+                }
             }
             else {
                 a[i][j] = j - i + 1; // this choice of values was arbitrary
@@ -97,7 +103,7 @@ int main () {
         }
     }
 
-    /* print the matrix A before calling houheholder */
+    /* print the matrix A before calling hessenberg */
     printf("A = \n");
     for(i = 0; i < m; i++) {
         for(j = 0; j < m; j++) {
@@ -108,6 +114,7 @@ int main () {
     }
     printf("\n");
 
+    /* execute householder recudtion to hessenberg form */
     hessenberg(a, v, m);
 
     /* print the matrix R (stored in A) after calling houheholder */
@@ -120,7 +127,7 @@ int main () {
     }
     printf("\n");
 
-    /* print the vectors v after calling householder */
+    /* print the vectors v after calling hessenberg */
     for(i = 0; i < m - 1; i++) {
         printf("v[%i] = ", i);
         for(j = 0; j < m - i - 1; j++) {

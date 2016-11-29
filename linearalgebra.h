@@ -252,6 +252,65 @@ void partialscalar_sub (double * x, double r, int length,
 }
 
 
+
+/* ----------------------- matrixrow_sub ----------------------- */
+/*  Given two arrays, the length of the second array, a scalar 
+    value, a row number, and an index, this function multiplies 
+    the values starting at the given index from the first array
+    by the scalar value and then subtracts the computed 
+    components from the components the second array.
+    
+    Input variables:
+        x     : pointer to array whose components are to be
+                 multiplied by r then subtracted from the
+                 components of the second array, y. The 
+                 elements of the array should be the columns
+                 of the matrix A.
+        r     : scalar used in multiplication.
+        length: number of entries in y.
+        index : index at which to start subtraction
+        row   : index of row at which to perform subtraction
+        y     : pointer to array in which the components
+                 of x are to be stored.
+
+    Features: This implementation has time complexity 
+    O(length) and requires O(1) additional memory.               */
+
+void matrixrow_sub (double * x, double r, int length, 
+                               int index, int row, double ** y) 
+{
+    int i, length5;
+
+    length5 = length % 5;
+
+    if(r == 1) {
+        for(i = 0; i < length5; i++) {
+            y[i + index][row] -= x[i];
+        }
+        for(; i < length; i += 5) {
+            y[i + index][row] -= x[i];
+            y[i + index + 1][row] -= x[i + 1];
+            y[i + index + 2][row] -= x[i + 2];
+            y[i + index + 3][row] -= x[i + 3];
+            y[i + index + 4][row] -= x[i + 4];
+        }
+    }
+
+    else{
+        for(i = 0; i < length5; i++) {
+            y[i + index][row] -= r * x[i];
+        }
+        for(; i < length; i += 5) {
+            y[i + index][row] -= r * x[i];
+            y[i + index + 1][row] -= r * x[i + 1];
+            y[i + index + 2][row] -= r * x[i + 2];
+            y[i + index + 3][row] -= r * x[i + 3];
+            y[i + index + 4][row] -= r * x[i + 4];
+        }
+    }
+}
+
+
 /* --------------------- dot_product --------------------- */
 /*  Given two arrays of the same length and their length, 
     this function returns the dot product of the two 
@@ -367,6 +426,46 @@ double subdot_product (double * x, double * y, int length, int index) {
                                    + x[i + index + 2] * y[i + 2]
                                    + x[i + index + 3] * y[i + 3]
                                    + x[i + index + 4] * y[i + 4];
+    }
+
+    return sum;
+}
+
+
+/* -------------------- submatrow_product -------------------- */
+/*  Given two arrays, the length of the second array, an index
+    and a row number, this function returns the dot product of
+    the two subarrays x[index : index + length][row] and 
+    y[0 : length]. It is necessary that index + length is
+    at most the length of the first array.
+    
+    Input variables:
+        x     : pointer to first array whose entries should be
+                the columns of the matrix A.
+        y     : pointer to second array.
+        length: number of entries in y.
+        index : starting index for subarray of x.
+        row   : row index of matrix A
+
+    Features: This implementation has time complexity 
+    O(length) and requires O(1) additional memory.          */
+
+double submatrow_product (double ** x, double * y, int length, 
+                                       int index, int row) 
+{
+    int i, length5;
+    double sum = 0;
+
+    length5 = length % 5;
+
+    for(i = 0; i < length5; i++) {
+        sum += x[i + index][row] * y[i];
+    }
+    for(; i < length; i += 5) {
+        sum += x[i + index][row] * y[i] + x[i + index + 1][row] * y[i + 1] 
+                                        + x[i + index + 2][row] * y[i + 2]
+                                        + x[i + index + 3][row] * y[i + 3]
+                                        + x[i + index + 4][row] * y[i + 4];
     }
 
     return sum;
